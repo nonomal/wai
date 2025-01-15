@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useGetTodayDisplayedEvents } from '../composables/useGetTodayDisplayedEvents'
+import { onMounted, ref } from 'vue'
+import { useGetTodayEventData } from '../composables/useGetTodayEventData'
 import ContentCard from './ContentCard.vue'
 
 interface IToadyEventProps {
@@ -8,9 +9,20 @@ interface IToadyEventProps {
 }
 
 const props = defineProps<IToadyEventProps>()
-const eventsForDisplay = useGetTodayDisplayedEvents(props.date)
+const cardRef = ref<InstanceType<typeof ContentCard>>()
+const { events } = useGetTodayEventData(props.date, cardRef)
+
+onMounted(() => {
+  const container = cardRef.value?.containerRef
+
+  if (!container) return
+
+  container.style.display = 'flex'
+  container.style.flexDirection = 'column'
+  container.style.justifyContent = 'center'
+})
 </script>
 
 <template>
-  <ContentCard title="历史上的今天" :items="eventsForDisplay" :is-reversed="props.isReversed"></ContentCard>
+  <ContentCard ref="cardRef" title="历史上的今天" :items="events" :is-reversed="props.isReversed"></ContentCard>
 </template>

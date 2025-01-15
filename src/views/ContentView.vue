@@ -1,42 +1,34 @@
 <script setup lang="ts">
-import { useContentLayout } from '../composables/useContentLayout'
-import { useMoment } from '../composables/useMoment'
+import { ref, watch } from 'vue'
 import DateTime from '../components/DateTime.vue'
-import TodayEvent from '../components/TodayEvent.vue'
-import SeasonFood from '../components/SeasonFood.vue'
 import ModeSelector from '../components/ModeSelector.vue'
+import SeasonFood from '../components/SeasonFood.vue'
+import TodayEvent from '../components/TodayEvent.vue'
 import { useMode } from '../composables/useMode'
+import { useMoment } from '../composables/useMoment'
 
 const { moment } = useMoment()
-const { leftRef, rightWidth } = useContentLayout()
-
 const { mode, config } = useMode()
+const transform = ref(`rotate(${config.turn}turn)`)
+
+watch(config, (n) => (transform.value = `rotate(${n.turn}turn)`))
 </script>
 
 <template>
   <main id="container">
-    <section
-      id="content"
-      :style="{
-        transform: `rotate(${config.turn}turn)`,
-      }"
-    >
-      <section id="left" ref="leftRef" class="column">
+    <section id="content">
+      <section id="w1">
         <DateTime :date="moment" />
+      </section>
+      <section id="w2">
         <TodayEvent :date="moment" :is-reversed="config.isReversed" />
       </section>
-      <section
-        id="right"
-        class="column"
-        :style="{
-          width: `${rightWidth}px`,
-        }"
-      >
+      <section id="w3">
         <SeasonFood :date="moment" :is-reversed="config.isReversed" />
       </section>
     </section>
     <section id="about">
-      <a href="https://github.com/DukeLuo/wai" target="_blank"><img src="/icons/about.svg" alt="About" /></a>
+      <a href="https://github.com/dukeluo/wai" target="_blank"><img src="/icons/about.svg" alt="About" /></a>
     </section>
     <section id="setting">
       <ModeSelector v-model="mode" />
@@ -45,35 +37,56 @@ const { mode, config } = useMode()
 </template>
 
 <style lang="scss" scoped>
-.column {
-  display: inline-block;
-}
-
 #container {
-  width: 100%;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  width: inherit;
+  height: inherit;
 }
 
 #content {
-  display: flex;
-  align-items: center;
-  position: relative;
-  padding-right: 144px;
+  transform: v-bind('transform');
+
+  overflow: hidden;
+  display: grid;
+  grid-template-areas:
+    'w1  w1  w1  w3'
+    'w2  w2  w2  w3'
+    'w2  w2  w2  w3';
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+
+  width: 60vh;
+  height: 60vh;
+  margin: auto;
 }
 
-#left {
-  width: 420px;
+#w1 {
+  grid-area: w1;
 }
 
-#right {
-  transform: rotate(0.75turn) translate(-100%, 0);
-  transform-origin: left top;
-  position: absolute;
-  top: 0px;
-  left: 444px;
+#w2 {
+  grid-area: w2;
+}
+
+#w3 {
+  transform: rotate(-180deg);
+
+  grid-area: w3;
+  justify-self: center;
+
+  writing-mode: vertical-rl;
+  text-orientation: sideways;
+}
+
+@media (max-width: 820px) {
+  #content {
+    transform: none;
+    min-width: 600px;
+    min-height: 600px;
+  }
 }
 
 #about {
@@ -89,7 +102,7 @@ const { mode, config } = useMode()
 
 #setting {
   position: absolute;
-  bottom: 32px;
   right: 16px;
+  bottom: 32px;
 }
 </style>
